@@ -3,5 +3,6 @@ qhchina
 opencc-python-reimplemented
 numpy
 matplotlib
+networkx
 scikit-learn
 plotly
