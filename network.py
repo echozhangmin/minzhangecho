@@ -10,6 +10,7 @@ Outputs:
   output/zhuyuanzhang_network_edges.csv  node-node-weight edge list
 
 Run from the repository root:  python network.py
+(For the interactive version, run: python plot_html.py)
 """
 import csv
 import os
@@ -50,6 +51,7 @@ GROUPS = {
     "皇亲宗室": ["马皇后", "朱标", "朱棣", "朱允炆", "朱樉", "朱棡", "朱橚",
                  "朱文正"],
     "元朝": ["脱脱", "纳哈出", "把匝剌瓦尔密"],
+    "早年恩主": ["郭子兴"],
 }
 GROUP_COLOR = {
     "群雄/对手": "#e67e22",
@@ -57,6 +59,7 @@ GROUP_COLOR = {
     "文臣谋士": "#27ae60",
     "皇亲宗室": "#8e44ad",
     "元朝": "#7f8c8d",
+    "早年恩主": "#c0392b",
 }
 SHORT = {
     "陈友谅": ["友谅"], "张士诚": ["士诚"], "郭子兴": ["子兴"], "李文忠": ["文忠"],
@@ -66,16 +69,13 @@ SHORT = {
     "康茂才": ["茂才"], "朱亮祖": ["亮祖"], "徐寿辉": ["寿辉"], "赵普胜": ["普胜"],
     "彭莹玉": ["莹玉"],
 }
-# 郭子兴 is not in the groups above (early patron) -> add explicitly
-GROUPS["早年恩主"] = ["郭子兴"]
-GROUP_COLOR["早年恩主"] = "#c0392b"
-
 NAME2GROUP = {n: g for g, ns in GROUPS.items() for n in ns}
 ALIASES = {n: [n] + SHORT.get(n, []) for n in NAME2GROUP}
 TOKEN2NAME = {a: n for n, als in ALIASES.items() for a in als}
 
 
-def main():
+def build_graph(min_freq=2, min_pair=2):
+    """Return (graph, person_count, names) built from the segmented corpus."""
     lines = open(SEGMENTED, encoding="utf-8").read().splitlines()
 
     person_count = Counter()
@@ -90,26 +90,24 @@ def main():
         for a, b in combinations(sorted(present), 2):
             pair_count[(a, b)] += 1
 
-    MIN_FREQ = 2
-    names = [n for n, c in person_count.most_common() if c >= MIN_FREQ]
-
+    names = [n for n, c in person_count.most_common() if c >= min_freq]
     G = nx.Graph()
-    G.add_node(TARGET, freq=max(person_count.values()) * 1.2)
+    G.add_node(TARGET, freq=person_count.get(TARGET, 1))
     for n in names:
         G.add_node(n, freq=person_count[n])
         G.add_edge(TARGET, n, weight=person_count[n])
     for (a, b), w in pair_count.items():
-        if a in names and b in names and w >= 2:
+        if a in names and b in names and w >= min_pair:
             G.add_edge(a, b, weight=w)
+    return G, person_count, names
 
-    # ---- draw ----
+
+def draw_png(G, person_count, names):
     fig, ax = plt.subplots(figsize=(16, 12))
     pos = nx.spring_layout(G, k=1.1, seed=7, iterations=300)
-
-    center = [TARGET]
     nx.draw_networkx_edges(G, pos, ax=ax, width=[0.3 + 0.10 * G[u][v]["weight"]
                             for u, v in G.edges], alpha=0.3, edge_color="#999")
-    nx.draw_networkx_nodes(G, pos, nodelist=center, node_color="#c0392b",
+    nx.draw_networkx_nodes(G, pos, nodelist=[TARGET], node_color="#c0392b",
                            node_size=3200, ax=ax, edgecolors="white")
     for group, color in GROUP_COLOR.items():
         nodes = [n for n in G.nodes if NAME2GROUP.get(n) == group]
@@ -120,7 +118,6 @@ def main():
             node_size=[500 + 80 * G.nodes[n]["freq"] for n in nodes],
             ax=ax, edgecolors="white", label=group)
     nx.draw_networkx_labels(G, pos, ax=ax, font_size=11)
-
     ax.set_title("Co-occurrence network around 太祖 (朱元璋) in the Mingshi\n"
                  "node size = co-occurrence with 太祖; edge = same-sentence co-occurrence",
                  fontsize=14)
@@ -130,12 +127,15 @@ def main():
     fig.tight_layout()
     fig.savefig(OUT_PNG, dpi=200, bbox_inches="tight")
 
+
+def main():
+    G, person_count, names = build_graph()
+    draw_png(G, person_count, names)
     with open(OUT_CSV, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["source", "target", "weight"])
         for u, v, d in G.edges(data=True):
             writer.writerow([u, v, d["weight"]])
-
     print(f"wrote {OUT_PNG}: {G.number_of_nodes()} nodes, "
           f"{G.number_of_edges()} edges")
     print(f"wrote {OUT_CSV}")
