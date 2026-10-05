@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>Force-directed network around 太祖 (朱元璋)</title>
+<style>
+  body { margin: 0; font-family: "Songti SC", "PingFang SC", sans-serif; }
+  h2 { margin: 10px 16px 0; color: #333; }
+  p.note { margin: 4px 16px 8px; color: #777; font-size: 13px; }
+  svg { width: 100%; height: 880px; display: block; cursor: grab; }
+  .links line { stroke: #999; stroke-opacity: 0.45; }
+  .nodes circle { stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+  .labels text { font-size: 12px; fill: #222; pointer-events: none;
+                  paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+  #tip { position: absolute; padding: 6px 10px; background: rgba(0,0,0,.8);
+          color: #fff; border-radius: 4px; font-size: 13px; pointer-events: none;
+          opacity: 0; transition: opacity .1s; }
+</style>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+<h2>Force-directed network around 太祖 (朱元璋) in the Mingshi</h2>
+<p class="note">drag = 拖动节点；滚轮 = 缩放；悬停 = 查看阵营与共现次数。
+节点大小 = 与太祖共现次数，连线粗细 = 同句共现次数。</p>
+<div id="tip"></div>
+<svg></svg>
+<script>
+const data = {"nodes": [{"id": "太祖", "group": "太祖", "freq": 0, "isTarget": true}, {"id": "陈友谅", "group": "群雄/对手", "freq": 33, "isTarget": false}, {"id": "张士诚", "group": "群雄/对手", "freq": 19, "isTarget": false}, {"id": "宋濂", "group": "文臣谋士", "freq": 15, "isTarget": false}, {"id": "徐达", "group": "开国名将", "freq": 13, "isTarget": false}, {"id": "刘基", "group": "文臣谋士", "freq": 13, "isTarget": false}, {"id": "郭子兴", "group": "早年恩主", "freq": 10, "isTarget": false}, {"id": "常遇春", "group": "开国名将", "freq": 10, "isTarget": false}, {"id": "李善长", "group": "文臣谋士", "freq": 9, "isTarget": false}, {"id": "张定边", "group": "群雄/对手", "freq": 8, "isTarget": false}, {"id": "李文忠", "group": "开国名将", "freq": 8, "isTarget": false}, {"id": "韩林儿", "group": "群雄/对手", "freq": 7, "isTarget": false}, {"id": "王保保", "group": "群雄/对手", "freq": 6, "isTarget": false}, {"id": "廖永忠", "group": "开国名将", "freq": 5, "isTarget": false}, {"id": "张昶", "group": "文臣谋士", "freq": 4, "isTarget": false}, {"id": "康茂才", "group": "开国名将", "freq": 4, "isTarget": false}, {"id": "陈友定", "group": "群雄/对手", "freq": 4, "isTarget": false}, {"id": "胡惟庸", "group": "文臣谋士", "freq": 4, "isTarget": false}, {"id": "方国珍", "group": "群雄/对手", "freq": 4, "isTarget": false}, {"id": "叶琛", "group": "文臣谋士", "freq": 4, "isTarget": false}, {"id": "邓愈", "group": "开国名将", "freq": 3, "isTarget": false}, {"id": "胡大海", "group": "开国名将", "freq": 3, "isTarget": false}, {"id": "费聚", "group": "开国名将", "freq": 2, "isTarget": false}, {"id": "詹同", "group": "文臣谋士", "freq": 2, "isTarget": false}, {"id": "刘三吾", "group": "文臣谋士", "freq": 2, "isTarget": false}, {"id": "汪广洋", "group": "文臣谋士", "freq": 2, "isTarget": false}, {"id": "赵普胜", "group": "群雄/对手", "freq": 2, "isTarget": false}, {"id": "杨宪", "group": "文臣谋士", "freq": 2, "isTarget": false}, {"id": "傅友德", "group": "开国名将", "freq": 2, "isTarget": false}, {"id": "邵荣", "group": "开国名将", "freq": 2, "isTarget": false}, {"id": "耿炳文", "group": "开国名将", "freq": 2, "isTarget": false}, {"id": "章溢", "group": "文臣谋士", "freq": 2, "isTarget": false}], "links": [{"source": "太祖", "target": "陈友谅", "weight": 33}, {"source": "太祖", "target": "张士诚", "weight": 19}, {"source": "太祖", "target": "宋濂", "weight": 15}, {"source": "太祖", "target": "徐达", "weight": 13}, {"source": "太祖", "target": "刘基", "weight": 13}, {"source": "太祖", "target": "郭子兴", "weight": 10}, {"source": "太祖", "target": "常遇春", "weight": 10}, {"source": "太祖", "target": "李善长", "weight": 9}, {"source": "太祖", "target": "张定边", "weight": 8}, {"source": "太祖", "target": "李文忠", "weight": 8}, {"source": "太祖", "target": "韩林儿", "weight": 7}, {"source": "太祖", "target": "王保保", "weight": 6}, {"source": "太祖", "target": "廖永忠", "weight": 5}, {"source": "太祖", "target": "张昶", "weight": 4}, {"source": "太祖", "target": "康茂才", "weight": 4}, {"source": "太祖", "target": "陈友定", "weight": 4}, {"source": "太祖", "target": "胡惟庸", "weight": 4}, {"source": "太祖", "target": "方国珍", "weight": 4}, {"source": "太祖", "target": "叶琛", "weight": 4}, {"source": "太祖", "target": "邓愈", "weight": 3}, {"source": "太祖", "target": "胡大海", "weight": 3}, {"source": "太祖", "target": "费聚", "weight": 2}, {"source": "太祖", "target": "詹同", "weight": 2}, {"source": "太祖", "target": "刘三吾", "weight": 2}, {"source": "太祖", "target": "汪广洋", "weight": 2}, {"source": "太祖", "target": "赵普胜", "weight": 2}, {"source": "太祖", "target": "杨宪", "weight": 2}, {"source": "太祖", "target": "傅友德", "weight": 2}, {"source": "太祖", "target": "邵荣", "weight": 2}, {"source": "太祖", "target": "耿炳文", "weight": 2}, {"source": "太祖", "target": "章溢", "weight": 2}, {"source": "陈友谅", "target": "张定边", "weight": 3}, {"source": "陈友谅", "target": "张士诚", "weight": 2}, {"source": "张士诚", "target": "康茂才", "weight": 2}, {"source": "张士诚", "target": "韩林儿", "weight": 2}, {"source": "宋濂", "target": "刘基", "weight": 3}, {"source": "宋濂", "target": "叶琛", "weight": 2}, {"source": "徐达", "target": "常遇春", "weight": 2}, {"source": "刘基", "target": "叶琛", "weight": 3}, {"source": "刘基", "target": "章溢", "weight": 2}, {"source": "郭子兴", "target": "韩林儿", "weight": 2}, {"source": "常遇春", "target": "张定边", "weight": 3}, {"source": "胡惟庸", "target": "汪广洋", "weight": 2}, {"source": "叶琛", "target": "章溢", "weight": 2}]};
+const color = {"群雄/对手": "#e67e22", "开国名将": "#2c7fb8", "文臣谋士": "#27ae60", "皇亲宗室": "#8e44ad", "元朝": "#7f8c8d", "早年恩主": "#c0392b"};
+const width = 1200, height = 880;
+
+const svg = d3.select("svg").attr("viewBox", [0, 0, width, height]);
+const g = svg.append("g");
+svg.call(d3.zoom().scaleExtent([0.3, 4]).on("zoom", (e) => g.attr("transform", e.transform)));
+
+const link = g.append("g").attr("class", "links")
+  .selectAll("line").data(data.links).join("line")
+  .attr("stroke-width", (d) => 0.5 + d.weight * 0.35);
+
+const node = g.append("g").attr("class", "nodes")
+  .selectAll("circle").data(data.nodes).join("circle")
+  .attr("r", (d) => (d.isTarget ? 26 : 6 + d.freq * 1.3))
+  .attr("fill", (d) => (d.isTarget ? "#c0392b" : color[d.group] || "#34495e"));
+
+const label = g.append("g").attr("class", "labels")
+  .selectAll("text").data(data.nodes).join("text")
+  .attr("text-anchor", "middle").attr("dy", -14).text((d) => d.id);
+
+const tip = d3.select("#tip");
+node.on("mousemove", (e, d) => {
+    tip.style("opacity", 1)
+       .style("left", (e.pageX + 12) + "px")
+       .style("top", (e.pageY + 12) + "px")
+       .html(d.isTarget ? "<b>太祖</b> (朱元璋)"
+            : "<b>" + d.id + "</b><br>阵营: " + d.group + "<br>与太祖共现: " + d.freq + " 次");
+  }).on("mouseleave", () => tip.style("opacity", 0));
+
+const simulation = d3.forceSimulation(data.nodes)
+  .force("link", d3.forceLink(data.links).id((d) => d.id)
+        .distance((d) => 40 + 120 / Math.sqrt(d.weight))
+        .strength((d) => Math.min(1, d.weight / 20)))
+  .force("charge", d3.forceManyBody().strength(-260))
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collide", d3.forceCollide().radius((d) => (d.isTarget ? 28 : 8 + d.freq * 1.3) + 4))
+  .on("tick", () => {
+    link.attr("x1", (d) => d.source.x).attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x).attr("y2", (d) => d.target.y);
+    node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+    label.attr("x", (d) => d.x).attr("y", (d) => d.y);
+  });
+
+node.call(d3.drag()
+  .on("start", (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x; d.fy = d.y; })
+  .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+  .on("end", (e, d) => { if (!e.active) simulation.alphaTarget(0);
+      d.fx = null; d.fy = null; }));
+</script>
+</body>
+</html>
