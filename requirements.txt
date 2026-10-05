@@ -1,5 +1,6 @@
 jieba
 qhchina
+opencc-python-reimplemented
 numpy
 matplotlib
 scikit-learn
